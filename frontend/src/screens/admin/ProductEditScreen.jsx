@@ -7,7 +7,8 @@ import Loader from '../../components/Loader';
 import { toast } from 'react-toastify';
 import { 
   useUpdateProductMutation, 
-  useGetProductDetailsQuery 
+  useGetProductDetailsQuery,
+  useUploadProductImageMutation
 } from '../../slices/productApiSlice';
 
 const ProductEditScreen = () => {
@@ -25,6 +26,8 @@ const ProductEditScreen = () => {
   const { data: product, isLoading, error } = useGetProductDetailsQuery(productId);
 
   const [updateProduct, { isLoading: loadingUpdate }] = useUpdateProductMutation();
+
+  const [uploadProductImage, { isLoading: loadingUpload }] = useUploadProductImageMutation();
 
   const navigate = useNavigate();
 
@@ -60,6 +63,18 @@ const ProductEditScreen = () => {
       toast.success('Product Updated');
       navigate('/admin/productlist');
     }
+  };
+
+  const uploadFileHandler = async (e) => { 
+    const formData = new FormData();
+    formData.append('image', e.target.files[0]);
+    try {
+      const res = await uploadProductImage(formData).unwrap();
+      toast.success(res.message);
+      setImage(res.image);
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
   }
 
   return (
@@ -93,7 +108,21 @@ const ProductEditScreen = () => {
               ></Form.Control>
             </Form.Group>
 
-            {/* IMAGE INPUT PLACEHOLDER */}
+            <Form.Group controlId="image" className="my-2">
+              <Form.Label>Image</Form.Label>
+                <Form.Control 
+                  type="text"
+                  placeholder="Enter Image URL"
+                  value={image}
+                  onChange={ (e) => setImage(e.target.value) }
+                ></Form.Control>
+                <Form.Control 
+                  type="file"
+                  label = 'Choose File'
+                  onChange={ uploadFileHandler }
+                ></Form.Control>
+                { loadingUpload && <Loader />}
+            </Form.Group>
 
             <Form.Group controlId="brand">
               <Form.Label>Brand</Form.Label>
@@ -101,7 +130,10 @@ const ProductEditScreen = () => {
                 type="text"
                 placeholder="Enter Brand Name"
                 value={brand}
-                onChange={(e) => setBrand(e.target.value)}
+                onChange={(e) => {
+                  console.log("File input change event:", e.target.files[0]);
+                  uploadFileHandler(e);
+                }}
               ></Form.Control>
             </Form.Group>
 
