@@ -4,7 +4,11 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 import Message from '../../components/Message';
 import Loader from '../../components/Loader';
 import { toast } from 'react-toastify';
-import { useGetProductsQuery, useCreateProductMutation } from '../../slices/productApiSlice';
+import { 
+  useGetProductsQuery, 
+  useCreateProductMutation, 
+  useDeleteProductMutation
+} from '../../slices/productApiSlice';
 
 
 const ProductListScreen = () => {
@@ -13,8 +17,18 @@ const ProductListScreen = () => {
 
   const [ createProduct, { isLoading: loadingCreate } ] = useCreateProductMutation();
 
-  const deleteHandler = (id) => {
-    console.log('delete', id);
+  const [ deleteProduct, { isLoading: loadingDelete }] = useDeleteProductMutation();
+
+  const deleteHandler = async (id) => {
+    if (window.confirm('Are you sure want to delete the product?')) {
+      try {
+        await deleteProduct(id);
+        toast.success('Product deleted');
+        refetch();
+      } catch (err) {
+        toast.error(err?.data?.message || err.error);
+      }
+    }
   }
 
   const createProductHandler = async () => {
@@ -41,6 +55,7 @@ const ProductListScreen = () => {
     </Row>
 
     { loadingCreate && <Loader /> }
+    { loadingDelete && <Loader /> }
     { isLoading ? <Loader /> : error ? <Message variant='danger'>
       {error}</Message> : (
         <>
@@ -69,7 +84,10 @@ const ProductListScreen = () => {
                         <FaEdit />
                       </Button>
                     </LinkContainer>
-                    <Button variant='danger' className='btn-sm' onClick={ () => deleteHandler(product._id) }>
+                    <Button 
+                      variant='danger' 
+                      className='btn-sm' 
+                      onClick={ () => deleteHandler(product._id) }>
                       <FaTrash style={{ color: 'white' }}/>
                     </Button>
                   </td>
