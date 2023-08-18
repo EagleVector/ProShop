@@ -5,7 +5,8 @@ import Message from '../../components/Message';
 import Loader from '../../components/Loader';
 import { toast } from 'react-toastify';
 import { 
-  useGetUsersQuery
+  useGetUsersQuery,
+  useDeleteUserMutation
 } from '../../slices/usersApiSlice';
 
 
@@ -13,13 +14,24 @@ const UserListScreen = () => {
 
   const { data: users, isLoading, error, refetch } = useGetUsersQuery();
 
-  const deleteHandler = (id) => {
-    console.log('delete');
+  const [deleteUser, { isLoading: loadingDelete }] = useDeleteUserMutation();
+
+  const deleteHandler = async (id) => {
+    if (window.confirm('Are you sure want to delete the user?')) {
+      try {
+        await deleteUser(id);
+        toast.success('User deleted')
+        refetch();
+      } catch (err) {
+        toast.error(err?.data?.message || err.error);
+      }
+    }
   };
 
   return (
     <>
       <h1>Users</h1>
+      {loadingDelete && <Loader />}
       {isLoading ? <Loader /> : error ? <Message variant='danger'>
       {error}
       </Message> : (
@@ -48,7 +60,7 @@ const UserListScreen = () => {
                 )}
                 </td>
                 <td>
-                  <LinkContainer to={`admin/user/${user._id}/edit`}>
+                  <LinkContainer to={`/admin/user/${user._id}/edit`}>
                     <Button variant='light' className='btn-sm'>
                       <FaEdit />
                     </Button>
