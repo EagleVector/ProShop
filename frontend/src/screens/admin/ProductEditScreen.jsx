@@ -130,10 +130,7 @@ const ProductEditScreen = () => {
                 type="text"
                 placeholder="Enter Brand Name"
                 value={brand}
-                onChange={(e) => {
-                  console.log("File input change event:", e.target.files[0]);
-                  uploadFileHandler(e);
-                }}
+                onChange={ (e) => setBrand(e.target.value) }
               ></Form.Control>
             </Form.Group>
 
